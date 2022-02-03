@@ -1,0 +1,3 @@
+[submodule "components/nvs_component"]
+	path = components/nvs_component
+	url = https://github.com/SergeyKupavtsev/nvs_component.git
