@@ -15,25 +15,41 @@ typedef struct
     uint8_t soft_ap_off_time;
 } wireless_parameters_s;
 
-esp_err_t read_wifi_params(wireless_parameters_s **wireless_params)
+wireless_parameters_s *test_wifi_params;
+
+uint8_t test_value = 100;
+
+esp_err_t read_test_wifi_params(wireless_parameters_s **test_wifi_params)
 {
-    esp_err_t ret = read_struct("wifi_params", wireless_params, sizeof(wireless_parameters_s));
+    esp_err_t ret = read_struct("test_wifi_params", test_wifi_params, sizeof(wireless_parameters_s));
     return ret;
 }
 
-esp_err_t write_wifi_params(wireless_parameters_s *wireless_params)
+esp_err_t write_test_wifi_params(wireless_parameters_s *test_wifi_params)
 {
-    esp_err_t ret = write_struct("wifi_params", wireless_params, sizeof(wireless_parameters_s));
+    esp_err_t ret = write_struct("test_wifi_params", test_wifi_params, sizeof(wireless_parameters_s));
     return ret;
 }
-wireless_parameters_s *wifi_params;
+
+esp_err_t write_value(uint8_t value)
+{
+    esp_err_t ret = nvs_write_u8("1_0_0", value);
+    return ret;
+}
+
+esp_err_t read_value(uint8_t *value)
+{
+    esp_err_t ret = nvs_read_u8("1_0_0", value);
+    return ret;
+}
+
 void print_wifi_struct()
 {
-    printf("wifi_sta.password = %s\n", wifi_params->wifi_sta.password);
-    printf("wifi_sta.ssid =  %s\n", wifi_params->wifi_sta.ssid);
-    printf("wifi_ap.password = %s\n", wifi_params->wifi_ap.password);
-    printf("wifi_ap.ssid = %s\n", wifi_params->wifi_ap.ssid);
-    printf("soft_ap_off_time = %i\n", wifi_params->soft_ap_off_time);
+    printf("wifi_sta.password = %s\n", test_wifi_params->wifi_sta.password);
+    printf("wifi_sta.ssid =  %s\n", test_wifi_params->wifi_sta.ssid);
+    printf("wifi_ap.password = %s\n", test_wifi_params->wifi_ap.password);
+    printf("wifi_ap.ssid = %s\n", test_wifi_params->wifi_ap.ssid);
+    printf("soft_ap_off_time = %i\n", test_wifi_params->soft_ap_off_time);
 }
 void app_main()
 {
@@ -42,21 +58,29 @@ void app_main()
     esp_err_t ret = nvs_init();
     printf("NVS init ret = %i\n", ret);
 
-    wifi_params = malloc(sizeof(wireless_parameters_s));
+    // ----------- Struct init --------------- //
+    test_wifi_params = malloc(sizeof(wireless_parameters_s));
+    test_wifi_params->soft_ap_off_time = 10;
+    strcpy(test_wifi_params->wifi_sta.password, "sta password");
+    strcpy(test_wifi_params->wifi_sta.ssid, "StaSsid");
+    strcpy(test_wifi_params->wifi_ap.password, "ap_password");
+    strcpy(test_wifi_params->wifi_ap.ssid, "ApSsid");
 
-    wifi_params->soft_ap_off_time = 10,
-    strcpy(wifi_params->wifi_sta.password, "sta password");
-    strcpy(wifi_params->wifi_sta.ssid, "StaSsid");
-    strcpy(wifi_params->wifi_ap.password, "ap_password");
-    strcpy(wifi_params->wifi_ap.ssid, "ApSsid");
-
+    // ----------- Write struct --------------- //
     printf("Write struct :\n");
-
     print_wifi_struct();
-
-    write_wifi_params(&wifi_params);
-
+    write_test_wifi_params(test_wifi_params);
+    // ----------- Read struct --------------- //
     printf("Read struct :\n");
-    read_wifi_params((&wifi_params));
+    read_test_wifi_params(&test_wifi_params);
     print_wifi_struct();
+
+    // ----------- Write uint8_t value --------------- //
+    printf("Write uint8_t value = %i\n", test_value);
+    write_value(test_value);
+
+    // ----------- Read uint8_t value  --------------- //
+    read_value(&test_value);
+    printf("Read uint8_t value = %i\n", test_value);
+    // -------------------------------------- //
 }
